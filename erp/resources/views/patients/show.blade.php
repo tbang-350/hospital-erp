@@ -1,114 +1,253 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="flex items-center justify-between mb-4">
-    <div>
-        <h1 class="text-2xl font-semibold">{{ $patient->first_name }} {{ $patient->last_name }}</h1>
-        <div class="text-sm text-gray-600">MRN: {{ $patient->mrn }}</div>
-    </div>
-    <div class="flex gap-2">
-        <button onclick="openAppointmentModal()" class="px-3 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700 transition-colors">
-            Schedule Appointment
-        </button>
-        <button onclick="openInvoiceModal()" class="px-3 py-2 rounded bg-emerald-600 text-white hover:bg-emerald-700 transition-colors">
-            Create Invoice
-        </button>
-    </div>
-</div>
-
-<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-    <div class="md:col-span-2 space-y-4">
-        <div class="bg-white border rounded-lg shadow-sm">
-            <div class="px-4 py-3 border-b font-medium bg-gray-50 rounded-t-lg">Recent Appointments</div>
-            <div class="divide-y">
-                @forelse($patient->appointments as $a)
-                <div class="px-4 py-3 hover:bg-gray-50 transition-colors">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <div class="text-sm font-medium text-gray-900">{{ $a->scheduled_at?->format('Y-m-d H:i') }}</div>
-                            <div class="text-xs text-gray-600 mt-1">
-                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
-                                    {{ $a->status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
-                                       ($a->status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800') }}">
-                                    {{ ucfirst($a->status) }}
-                                </span>
-                                @if($a->location)
-                                    <span class="ml-2">{{ $a->location }}</span>
-                                @endif
-                                @if($a->reason)
-                                    <span class="ml-2">• {{ $a->reason }}</span>
-                                @endif
-                            </div>
-                        </div>
+<div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header Section -->
+        <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-8 gap-4">
+            <div class="flex items-center space-x-4">
+                <a href="{{ route('patients.index') }}"
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                    Back to Patients
+                </a>
+                <div class="flex items-center space-x-4">
+                    <div class="h-16 w-16 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold text-xl">
+                        {{ strtoupper(substr($patient->first_name, 0, 1) . substr($patient->last_name, 0, 1)) }}
+                    </div>
+                    <div>
+                        <h1 class="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                            {{ $patient->first_name }} {{ $patient->last_name }}
+                        </h1>
+                        <p class="text-gray-600 dark:text-gray-300 mt-1">MRN: {{ $patient->mrn }}</p>
                     </div>
                 </div>
-                @empty
-                <div class="px-4 py-6 text-sm text-gray-500 text-center">No appointments yet.</div>
-                @endforelse
+            </div>
+
+            <div class="flex items-center space-x-3">
+                <button onclick="openAppointmentModal()"
+                        class="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-all duration-200">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    Schedule Appointment
+                </button>
+                <button onclick="openInvoiceModal()"
+                        class="inline-flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-all duration-200">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    Create Invoice
+                </button>
             </div>
         </div>
 
-        <div class="bg-white border rounded-lg shadow-sm">
-            <div class="px-4 py-3 border-b font-medium bg-gray-50 rounded-t-lg">Recent Invoices</div>
-            <div class="divide-y">
-                @forelse($patient->invoices as $inv)
-                <div class="px-4 py-3 hover:bg-gray-50 transition-colors">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <div class="text-sm font-medium text-gray-900">{{ $inv->invoice_number }}</div>
-                            <div class="text-xs text-gray-600 mt-1">
-                                <span class="font-medium">{{ $inv->currency }} {{ number_format($inv->total,2) }}</span>
-                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ml-2
-                                    {{ $inv->status === 'paid' ? 'bg-green-100 text-green-800' :
-                                       ($inv->status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800') }}">
-                                    {{ ucfirst($inv->status) }}
-                                </span>
-                                @if($inv->issued_date)
-                                    <span class="ml-2">• Issued {{ $inv->issued_date->format('Y-m-d') }}</span>
-                                @endif
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Main Content -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Recent Appointments Card -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-700 dark:to-gray-600">
+                        <h2 class="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            Recent Appointments
+                        </h2>
+                    </div>
+                    <div class="divide-y divide-gray-200 dark:divide-gray-700">
+                        @forelse($patient->appointments->take(5) as $appointment)
+                        <div class="px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors duration-200">
+                            <div class="flex items-center justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="flex-shrink-0">
+                                            @php
+                                                $statusColors = [
+                                                    'scheduled' => 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200',
+                                                    'completed' => 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200',
+                                                    'cancelled' => 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200'
+                                                ];
+                                            @endphp
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $statusColors[$appointment->status] ?? 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-200' }}">
+                                                {{ ucfirst($appointment->status) }}
+                                            </span>
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="text-sm font-medium text-gray-900 dark:text-white">
+                                                {{ $appointment->scheduled_at?->format('l, F j, Y \\a\\t g:i A') }}
+                                            </div>
+                                            <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                                @if($appointment->location)
+                                                    <span class="inline-flex items-center">
+                                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                                        </svg>
+                                                        {{ $appointment->location }}
+                                                    </span>
+                                                @endif
+                                                @if($appointment->reason)
+                                                    <span class="ml-2">• {{ Str::limit($appointment->reason, 50) }}</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex-shrink-0">
+                                    <a href="{{ route('appointments.show', $appointment) }}"
+                                       class="inline-flex items-center px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
+                                        View
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        @empty
+                        <div class="px-6 py-12 text-center">
+                            <svg class="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">No appointments yet</h3>
+                            <p class="text-gray-500 dark:text-gray-400 mb-4">Schedule the first appointment for this patient.</p>
+                            <button onclick="openAppointmentModal()"
+                                    class="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors duration-200">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                                Schedule Appointment
+                            </button>
+                        </div>
+                        @endforelse
+                    </div>
+                </div>
+
+                <!-- Recent Invoices Card -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-gray-700 dark:to-gray-600">
+                        <h2 class="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            Recent Invoices
+                        </h2>
+                    </div>
+                    <div class="divide-y divide-gray-200 dark:divide-gray-700">
+                        @forelse($patient->invoices->take(5) as $invoice)
+                        <div class="px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors duration-200">
+                            <div class="flex items-center justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="flex-shrink-0">
+                                            @php
+                                                $statusColors = [
+                                                    'paid' => 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200',
+                                                    'pending' => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200',
+                                                    'overdue' => 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200'
+                                                ];
+                                            @endphp
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $statusColors[$invoice->status] ?? 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-200' }}">
+                                                {{ ucfirst($invoice->status) }}
+                                            </span>
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="text-sm font-medium text-gray-900 dark:text-white">
+                                                {{ $invoice->invoice_number }}
+                                            </div>
+                                            <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                                <span class="font-medium text-gray-900 dark:text-white">{{ $invoice->currency }} {{ number_format($invoice->total, 2) }}</span>
+                                                @if($invoice->issued_date)
+                                                    <span class="ml-2">• Issued {{ $invoice->issued_date->format('M d, Y') }}</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex-shrink-0">
+                                    <a href="{{ route('invoices.show', $invoice) }}"
+                                       class="inline-flex items-center px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
+                                        View
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        @empty
+                        <div class="px-6 py-12 text-center">
+                            <svg class="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">No invoices yet</h3>
+                            <p class="text-gray-500 dark:text-gray-400 mb-4">Create the first invoice for this patient.</p>
+                            <button onclick="openInvoiceModal()"
+                                    class="inline-flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors duration-200">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                                Create Invoice
+                            </button>
+                        </div>
+                        @endforelse
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="space-y-6">
+                <!-- Demographics Card -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-gray-700 dark:to-gray-600">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                            </svg>
+                            Demographics
+                        </h3>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Date of Birth:</span>
+                            <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ $patient->dob }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Gender:</span>
+                            <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ ucfirst($patient->gender) }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Phone:</span>
+                            <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ $patient->phone }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Email:</span>
+                            <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ $patient->email }}</span>
+                        </div>
+
+                        <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Address:</span>
+                            </div>
+                            <div class="mt-2 text-sm text-gray-900 dark:text-white">
+                                {{ $patient->address }}<br>
+                                {{ $patient->city }}, {{ $patient->state }} {{ $patient->zip_code }}
+                            </div>
+                        </div>
+
+                        <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Insurance #:</span>
+                                <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ $patient->insurance_number }}</span>
+                            </div>
+                        </div>
+
+                        <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Emergency Contact:</span>
+                            </div>
+                            <div class="text-sm text-gray-900 dark:text-white">
+                                <div class="font-medium">{{ $patient->emergency_contact_name }}</div>
+                                <div class="text-gray-500 dark:text-gray-400">{{ $patient->emergency_contact_phone }}</div>
                             </div>
                         </div>
                     </div>
-                </div>
-                @empty
-                <div class="px-4 py-6 text-sm text-gray-500 text-center">No invoices yet.</div>
-                @endforelse
-            </div>
-        </div>
-    </div>
-
-    <div class="space-y-4">
-        <div class="bg-white border rounded-lg shadow-sm">
-            <div class="px-4 py-3 border-b font-medium bg-gray-50 rounded-t-lg">Demographics</div>
-            <div class="p-4 text-sm space-y-3">
-                <div class="flex justify-between">
-                    <span class="text-gray-500 font-medium">DOB:</span>
-                    <span class="text-gray-900">{{ $patient->dob }}</span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-gray-500 font-medium">Gender:</span>
-                    <span class="text-gray-900">{{ ucfirst($patient->gender) }}</span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-gray-500 font-medium">Phone:</span>
-                    <span class="text-gray-900">{{ $patient->phone }}</span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-gray-500 font-medium">Email:</span>
-                    <span class="text-gray-900">{{ $patient->email }}</span>
-                </div>
-                <div class="border-t pt-3">
-                    <div class="text-gray-500 font-medium mb-1">Address:</div>
-                    <div class="text-gray-900 text-xs leading-relaxed">{{ $patient->address }}, {{ $patient->city }}, {{ $patient->country }}</div>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-gray-500 font-medium">Insurance #:</span>
-                    <span class="text-gray-900">{{ $patient->insurance_number }}</span>
-                </div>
-                <div class="border-t pt-3">
-                    <div class="text-gray-500 font-medium mb-1">Emergency Contact:</div>
-                    <div class="text-gray-900 text-xs">{{ $patient->emergency_contact_name }}</div>
-                    <div class="text-gray-600 text-xs">({{ $patient->emergency_contact_phone }})</div>
                 </div>
             </div>
         </div>
