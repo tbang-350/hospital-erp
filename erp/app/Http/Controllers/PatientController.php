@@ -1,0 +1,49 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Patient;
+use Illuminate\Http\Request;
+
+class PatientController extends Controller
+{
+    public function index()
+    {
+        $patients = Patient::latest()->paginate(10);
+        return view('patients.index', compact('patients'));
+    }
+
+    public function create()
+    {
+        return view('patients.create');
+    }
+
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'dob' => 'nullable|date',
+            'gender' => 'nullable|in:male,female,other',
+            'phone' => 'nullable|string|max:50',
+            'email' => 'nullable|email',
+            'address' => 'nullable|string',
+            'city' => 'nullable|string|max:255',
+            'country' => 'nullable|string|max:255',
+            'insurance_number' => 'nullable|string|max:255',
+            'emergency_contact_name' => 'nullable|string|max:255',
+            'emergency_contact_phone' => 'nullable|string|max:50',
+            'preferred_language' => 'nullable|in:en,sw',
+        ]);
+
+        $patient = Patient::create($data);
+
+        return redirect()->route('patients.show', $patient)->with('success', 'Patient created successfully');
+    }
+
+    public function show(Patient $patient)
+    {
+        $patient->load(['appointments' => function($q){ $q->latest()->limit(10); }, 'invoices' => function($q){ $q->latest()->limit(10); }]);
+        return view('patients.show', compact('patient'));
+    }
+}
