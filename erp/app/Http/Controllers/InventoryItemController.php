@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\InventoryItem;
 use App\Models\InventoryTransaction;
+use App\Models\Supplier;
 use Illuminate\Http\Request;
 
 class InventoryItemController extends Controller
@@ -47,13 +48,15 @@ class InventoryItemController extends Controller
 
         $items = $query->latest()->paginate(15);
         $categories = InventoryItem::distinct()->pluck('category')->filter();
+        $suppliers = Supplier::active()->orderBy('name')->get();
 
-        return view('inventory.index', compact('items', 'categories'));
+        return view('inventory.index', compact('items', 'categories', 'suppliers'));
     }
 
     public function create()
     {
-        return view('inventory.create');
+        $suppliers = Supplier::active()->orderBy('name')->get();
+        return view('inventory.create', compact('suppliers'));
     }
 
     public function store(Request $request)
@@ -66,6 +69,9 @@ class InventoryItemController extends Controller
             'expiry_date' => 'nullable|date|after:today',
             'unit_cost' => 'required|numeric|min:0',
             'uom' => 'required|string|max:50',
+            'supplier' => 'nullable|string|max:255',
+            'supplier_id' => 'nullable|exists:suppliers,id',
+            'description' => 'nullable|string|max:1000',
         ]);
 
         $item = InventoryItem::create($data);
@@ -89,13 +95,15 @@ class InventoryItemController extends Controller
         $inventoryItem->load(['transactions' => function($q) {
             $q->latest()->limit(20);
         }]);
-        
-        return view('inventory.show', compact('inventoryItem'));
+
+        // Pass as 'item' to match the view expectations
+        return view('inventory.show', ['item' => $inventoryItem]);
     }
 
     public function edit(InventoryItem $inventoryItem)
     {
-        return view('inventory.edit', compact('inventoryItem'));
+        $suppliers = Supplier::active()->orderBy('name')->get();
+        return view('inventory.edit', compact('inventoryItem', 'suppliers'));
     }
 
     public function update(Request $request, InventoryItem $inventoryItem)
@@ -107,6 +115,9 @@ class InventoryItemController extends Controller
             'expiry_date' => 'nullable|date',
             'unit_cost' => 'required|numeric|min:0',
             'uom' => 'required|string|max:50',
+            'supplier' => 'nullable|string|max:255',
+            'supplier_id' => 'nullable|exists:suppliers,id',
+            'description' => 'nullable|string|max:1000',
         ]);
 
         $inventoryItem->update($data);
@@ -164,20 +175,36 @@ class InventoryItemController extends Controller
 
     public function lowStock()
     {
-        $items = InventoryItem::whereRaw('quantity <= reorder_level')
-                             ->orderBy('quantity')
-                             ->paginate(15);
-        
-        return view('inventory.low-stock', compact('items'));
+        $lowStockItems = InventoryItem::whereRaw('quantity <= reorder_level')
+                                ->orderBy('quantity')
+                                ->get();
+
+        $criticalItems = $lowStockItems->where('quantity', '<=', 5);
+        $categoriesAffected = $lowStockItems->pluck('category')->filter()->unique()->count();
+        $totalValueAtRisk = $lowStockItems->sum(function($item) {
+            return $item->quantity * $item->unit_cost;
+        });
+
+        return view('inventory.low-stock', compact('lowStockItems', 'criticalItems', 'categoriesAffected', 'totalValueAtRisk'));
     }
 
     public function expiring()
     {
-        $items = InventoryItem::whereNotNull('expiry_date')
-                             ->where('expiry_date', '<=', now()->addDays(30))
-                             ->orderBy('expiry_date')
-                             ->paginate(15);
-        
-        return view('inventory.expiring', compact('items'));
+        $days = request('days', 30);
+
+        $expiredItems = InventoryItem::whereNotNull('expiry_date')
+                               ->where('expiry_date', '<', now())
+                               ->orderBy('expiry_date')
+                               ->get();
+
+        $expiringSoonItems = InventoryItem::whereNotNull('expiry_date')
+                                     ->where('expiry_date', '>=', now())
+                                     ->where('expiry_date', '<=', now()->addDays($days))
+                                     ->orderBy('expiry_date')
+                                     ->get();
+
+        $allExpiringItems = $expiredItems->merge($expiringSoonItems);
+
+        return view('inventory.expiring', compact('expiredItems', 'expiringSoonItems', 'allExpiringItems'));
     }
 }

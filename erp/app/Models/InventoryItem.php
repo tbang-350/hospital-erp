@@ -9,7 +9,7 @@ class InventoryItem extends Model
 {
     protected $fillable = [
         'sku', 'name', 'category', 'quantity', 'reorder_level', 
-        'expiry_date', 'unit_cost', 'uom'
+        'expiry_date', 'unit_cost', 'uom', 'supplier', 'description', 'supplier_id'
     ];
 
     protected $casts = [
@@ -29,6 +29,11 @@ class InventoryItem extends Model
     public function transactions()
     {
         return $this->hasMany(InventoryTransaction::class);
+    }
+
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class);
     }
 
     public function isLowStock()

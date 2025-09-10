@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Hospital ERP</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -76,9 +77,15 @@
                 </a>
                 <a href="{{ route('inventory.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-primary-50 hover:text-primary-700 dark:hover:bg-gray-700 transition-colors {{ request()->routeIs('inventory.*') ? 'bg-primary-50 text-primary-700 dark:bg-gray-700 font-medium' : '' }}">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504 1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
                     </svg>
                     Inventory
+                </a>
+                <a href="{{ route('suppliers.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-primary-50 hover:text-primary-700 dark:hover:bg-gray-700 transition-colors {{ request()->routeIs('suppliers.*') ? 'bg-primary-50 text-primary-700 dark:bg-gray-700 font-medium' : '' }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m0-3.75A1.125 1.125 0 013.375 9h1.5m9.75-3.75H21.75a1.125 1.125 0 011.125 1.125v6.75m0 0a1.125 1.125 0 01-1.125 1.125H19.5m-9.75 0h9.75" />
+                    </svg>
+                    Suppliers
                 </a>
             </nav>
         </aside>
@@ -290,5 +297,7 @@
         </div>
     </div>
     @endif
+    
+    @yield('scripts')
 </body>
 </html>

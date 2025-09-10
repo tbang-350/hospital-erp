@@ -99,6 +99,30 @@
                 @enderror
             </div>
 
+            <!-- Supplier -->
+            <div>
+                <label for="supplier_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Supplier</label>
+                <select id="supplier_id" name="supplier_id" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
+                    <option value="">Select Supplier (Optional)</option>
+                    @foreach($suppliers as $supplier)
+                        <option value="{{ $supplier->id }}" {{ old('supplier_id') == $supplier->id ? 'selected' : '' }}>
+                            {{ $supplier->name }}
+                            @if($supplier->contact_person)
+                                - {{ $supplier->contact_person }}
+                            @endif
+                        </option>
+                    @endforeach
+                </select>
+                @error('supplier_id')
+                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
+                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    <a href="{{ route('suppliers.create') }}" class="text-primary-600 hover:text-primary-700" target="_blank">
+                        Add new supplier
+                    </a>
+                </p>
+            </div>
+
             <!-- Expiry Date -->
             <div class="md:col-span-2">
                 <label for="expiry_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Expiry Date</label>
