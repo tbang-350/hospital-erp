@@ -8,9 +8,19 @@
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Welcome back, Dr. Admin</h1>
                 <p class="text-gray-600 dark:text-gray-400">Here's what's happening at MediCare General Hospital today</p>
             </div>
-            <div class="text-right">
-                <div class="text-sm text-gray-500 dark:text-gray-400">{{ date('l, F j, Y') }}</div>
-                <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ date('g:i A') }}</div>
+            <div class="flex items-center gap-4">
+                <!-- Test Notifications Button -->
+                <a href="{{ route('test.notifications') }}" 
+                   class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white text-sm font-medium rounded-lg shadow-sm transition-all duration-200 hover:shadow-md">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                    </svg>
+                    Test Notifications
+                </a>
+                <div class="text-right">
+                    <div class="text-sm text-gray-500 dark:text-gray-400">{{ date('l, F j, Y') }}</div>
+                    <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ date('g:i A') }}</div>
+                </div>
             </div>
         </div>
     </div>

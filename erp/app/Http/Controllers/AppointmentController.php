@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Appointment;
 use App\Models\Patient;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 
 class AppointmentController extends Controller
@@ -24,6 +25,10 @@ class AppointmentController extends Controller
         ]);
         $data['status'] = 'scheduled';
         $appointment = Appointment::create($data);
+        
+        // Create notification for new appointment
+        NotificationService::createAppointmentNotification($appointment);
+        
         return redirect()->route('patients.show', $appointment->patient_id)->with('success', 'Appointment scheduled');
     }
 

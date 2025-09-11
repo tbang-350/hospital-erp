@@ -21,6 +21,54 @@
         }
     </script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <style>
+        /* Enhanced Notification Animations */
+        @keyframes notification-glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(99, 102, 241, 0.3); }
+            50% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.6), 0 0 30px rgba(99, 102, 241, 0.4); }
+        }
+        
+        @keyframes notification-shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+            20%, 40%, 60%, 80% { transform: translateX(2px); }
+        }
+        
+        @keyframes badge-pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        
+        .notification-active {
+            animation: notification-glow 2s ease-in-out infinite;
+        }
+        
+        .notification-urgent {
+            animation: notification-shake 0.5s ease-in-out infinite;
+        }
+        
+        .badge-animate {
+            animation: badge-pop 1s ease-in-out infinite;
+        }
+        
+        /* Notification Bell Ring Animation */
+        @keyframes bell-ring {
+            0% { transform: rotate(0deg); }
+            10% { transform: rotate(10deg); }
+            20% { transform: rotate(-8deg); }
+            30% { transform: rotate(6deg); }
+            40% { transform: rotate(-4deg); }
+            50% { transform: rotate(2deg); }
+            60% { transform: rotate(0deg); }
+            100% { transform: rotate(0deg); }
+        }
+        
+        .bell-ring {
+            animation: bell-ring 2s ease-in-out infinite;
+        }
+    </style>
 </head>
 <body class="min-h-full bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
     @if(request()->routeIs('login'))
@@ -118,20 +166,73 @@
                     </button>
 
                     <!-- Floating Notification Panel -->
-                    <div x-data="{ notificationOpen: false }" class="relative">
-                        <button @click="notificationOpen = !notificationOpen" class="p-2 text-gray-600 dark:text-gray-300 hover:text-primary-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors relative">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
-                            </svg>
-                            <!-- Notification Badge -->
-                            <span class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
-                                <span class="text-xs text-white font-bold">3</span>
+                    <div x-data="notificationDropdown()" class="relative">
+                        <button @click="toggleNotifications()" 
+                                class="p-2 rounded-lg transition-all duration-300 relative group"
+                                :class="{
+                                    'text-gray-600 dark:text-gray-300 hover:text-primary-600 hover:bg-gray-100 dark:hover:bg-gray-700': unreadCount === 0,
+                                    'text-primary-600 bg-primary-50 dark:bg-primary-900/30 hover:bg-primary-100 dark:hover:bg-primary-900/50 notification-active': unreadCount > 0 && unreadCount <= 5,
+                                    'text-red-600 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 notification-urgent': unreadCount > 5
+                                }">
+                            <!-- Notification Icon with Enhanced Visual Feedback -->
+                            <div class="relative">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" 
+                                     class="w-5 h-5 transition-transform duration-200"
+                                     :class="{
+                                         'bell-ring': unreadCount > 0 && unreadCount <= 5,
+                                         'animate-bounce notification-urgent': unreadCount > 5
+                                     }">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                                </svg>
+                                
+                                <!-- Pulsing Dot Indicator on Bell -->
+                                <div x-show="unreadCount > 0" 
+                                     class="absolute top-0 right-0 w-2 h-2 rounded-full animate-pulse"
+                                     :class="{
+                                         'bg-primary-500': unreadCount <= 5,
+                                         'bg-red-500': unreadCount > 5
+                                     }"></div>
+                                
+                                <!-- Pulsing Ring Animation for New Notifications -->
+                                <div x-show="unreadCount > 0" 
+                                     class="absolute inset-0 rounded-full border-2 animate-ping opacity-75"
+                                     :class="{
+                                         'border-primary-400': unreadCount <= 5,
+                                         'border-red-400': unreadCount > 5
+                                     }"></div>
+                                     
+                                <!-- Secondary Ring for Urgent Notifications -->
+                                <div x-show="unreadCount > 5" 
+                                     class="absolute inset-0 rounded-full border-2 border-orange-400 animate-ping opacity-50" 
+                                     style="animation-delay: 0.5s;"></div>
+                            </div>
+                            
+                            <!-- Enhanced Notification Badge -->
+                            <span x-show="unreadCount > 0" 
+                                  class="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full flex items-center justify-center shadow-lg"
+                                  :class="{
+                                      'bg-gradient-to-r from-primary-500 to-primary-600 animate-pulse': unreadCount <= 5,
+                                      'bg-gradient-to-r from-red-500 to-red-600 badge-animate': unreadCount > 5
+                                  }">
+                                <span class="text-xs text-white font-bold px-1" x-text="unreadCount > 99 ? '99+' : unreadCount"></span>
                             </span>
+                            
+                            <!-- Glowing Effect for Notifications -->
+                            <div x-show="unreadCount > 0" 
+                                 class="absolute inset-0 rounded-lg opacity-20 blur-sm animate-pulse"
+                                 :class="{
+                                     'bg-primary-400': unreadCount <= 5,
+                                     'bg-red-400': unreadCount > 5
+                                 }"></div>
+                                 
+                            <!-- Attention Grabber for Many Notifications -->
+                            <div x-show="unreadCount > 10" 
+                                 class="absolute -inset-2 rounded-lg bg-gradient-to-r from-red-400 to-orange-400 opacity-30 blur-md animate-pulse"></div>
                         </button>
 
                         <!-- Floating Notification Window -->
-                        <div x-show="notificationOpen"
-                             @click.away="notificationOpen = false"
+                        <div x-show="isOpen"
+                             @click.away="isOpen = false"
                              x-transition:enter="transition ease-out duration-200"
                              x-transition:enter-start="opacity-0 scale-95 translate-y-1"
                              x-transition:enter-end="opacity-100 scale-100 translate-y-0"
@@ -144,83 +245,87 @@
                             <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
                                 <div class="flex items-center justify-between">
                                     <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Notifications</h3>
-                                    <button class="text-sm text-primary-600 hover:text-primary-700 font-medium">Mark all read</button>
+                                    <button @click="markAllAsRead()" class="text-sm text-primary-600 hover:text-primary-700 font-medium">Mark all read</button>
                                 </div>
                             </div>
 
                             <!-- Notification List -->
                             <div class="max-h-96 overflow-y-auto">
-                                <!-- New Appointment Notification -->
-                                <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                                    <div class="flex items-start gap-3">
-                                        <div class="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center flex-shrink-0">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-blue-600 dark:text-blue-400">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5a2.25 2.25 0 002.25-2.25m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5a2.25 2.25 0 012.25 2.25v7.5m-18 0h18" />
-                                            </svg>
-                                        </div>
-                                        <div class="flex-1 min-w-0">
-                                            <p class="text-sm font-medium text-gray-900 dark:text-gray-100">New Appointment Scheduled</p>
-                                            <p class="text-sm text-gray-600 dark:text-gray-400">John Doe has scheduled an appointment for tomorrow at 2:00 PM</p>
-                                            <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">5 minutes ago</p>
-                                        </div>
-                                        <div class="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-2"></div>
-                                    </div>
+                                <div x-show="loading" class="px-4 py-8 text-center">
+                                    <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600 mx-auto"></div>
+                                    <p class="text-sm text-gray-500 mt-2">Loading notifications...</p>
                                 </div>
-
-                                <!-- Payment Received Notification -->
-                                <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                                    <div class="flex items-start gap-3">
-                                        <div class="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center flex-shrink-0">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-green-600 dark:text-green-400">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                        </div>
-                                        <div class="flex-1 min-w-0">
-                                            <p class="text-sm font-medium text-gray-900 dark:text-gray-100">Payment Received</p>
-                                            <p class="text-sm text-gray-600 dark:text-gray-400">Invoice #INV-001 has been paid by Sarah Johnson - $250.00</p>
-                                            <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">1 hour ago</p>
-                                        </div>
-                                        <div class="w-2 h-2 bg-green-500 rounded-full flex-shrink-0 mt-2"></div>
-                                    </div>
+                                
+                                <div x-show="!loading && notifications.length === 0" class="px-4 py-8 text-center">
+                                    <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5-5-5h5v-12"></path>
+                                    </svg>
+                                    <p class="text-sm text-gray-500">No notifications yet</p>
                                 </div>
-
-                                <!-- System Alert Notification -->
-                                <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                                    <div class="flex items-start gap-3">
-                                        <div class="w-8 h-8 bg-yellow-100 dark:bg-yellow-900 rounded-full flex items-center justify-center flex-shrink-0">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-yellow-600 dark:text-yellow-400">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-                                            </svg>
+                                
+                                <template x-for="notification in notifications" :key="notification.id">
+                                    <div @click="redirectToNotification(notification)" 
+                                         class="px-4 py-3 border-b border-gray-100 dark:border-gray-700 cursor-pointer transition-all duration-200 relative"
+                                         :class="{
+                                             'opacity-75 hover:bg-gray-50 dark:hover:bg-gray-700/50': notification.read_at,
+                                             'bg-gradient-to-r from-primary-50 to-transparent dark:from-primary-900/20 hover:from-primary-100 dark:hover:from-primary-900/30 border-l-4 border-l-primary-500': !notification.read_at && notification.priority !== 'high',
+                                             'bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 hover:from-red-100 hover:to-orange-100 dark:hover:from-red-900/30 dark:hover:to-orange-900/30 border-l-4 border-l-red-500 animate-pulse': !notification.read_at && notification.priority === 'high'
+                                         }">
+                                        <!-- Unread Notification Glow Effect -->
+                                        <div x-show="!notification.read_at" 
+                                             class="absolute inset-0 bg-gradient-to-r opacity-10 pointer-events-none"
+                                             :class="{
+                                                 'from-primary-400 to-transparent animate-pulse': notification.priority !== 'high',
+                                                 'from-red-400 to-orange-400 animate-pulse': notification.priority === 'high'
+                                             }"></div>
+                                             
+                                        <div class="flex items-start gap-3 relative z-10">
+                                            <!-- Enhanced Icon with Animation -->
+                                            <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-transform duration-200"
+                                                 :class="{
+                                                     ...getNotificationIconClass(notification),
+                                                     'animate-bounce': !notification.read_at && notification.priority === 'high',
+                                                     'scale-110': !notification.read_at
+                                                 }">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"
+                                                     :class="getNotificationIconColor(notification)">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" :d="getNotificationIconPath(notification)"></path>
+                                                </svg>
+                                                
+                                                <!-- Pulsing Ring for Unread High Priority -->
+                                                <div x-show="!notification.read_at && notification.priority === 'high'" 
+                                                     class="absolute inset-0 rounded-full border-2 border-red-400 animate-ping opacity-75"></div>
+                                            </div>
+                                            
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-sm font-medium transition-colors duration-200"
+                                                   :class="{
+                                                       'text-gray-900 dark:text-gray-100': !notification.read_at,
+                                                       'text-gray-600 dark:text-gray-400': notification.read_at
+                                                   }" 
+                                                   x-text="notification.title"></p>
+                                                <p class="text-sm text-gray-600 dark:text-gray-400" x-text="notification.message"></p>
+                                                <p class="text-xs text-gray-500 dark:text-gray-500 mt-1" x-text="formatTime(notification.created_at)"></p>
+                                            </div>
+                                            
+                                            <!-- Enhanced Unread Indicator -->
+                                            <div x-show="!notification.read_at" class="flex flex-col items-center gap-1 flex-shrink-0 mt-1">
+                                                <div class="w-3 h-3 rounded-full animate-pulse"
+                                                     :class="{
+                                                         ...getPriorityDotClass(notification),
+                                                         'shadow-lg': notification.priority === 'high'
+                                                     }"></div>
+                                                <div x-show="notification.priority === 'high'" 
+                                                     class="text-xs font-bold text-red-600 dark:text-red-400 animate-pulse">!</div>
+                                            </div>
                                         </div>
-                                        <div class="flex-1 min-w-0">
-                                            <p class="text-sm font-medium text-gray-900 dark:text-gray-100">System Maintenance</p>
-                                            <p class="text-sm text-gray-600 dark:text-gray-400">Scheduled maintenance will occur tonight from 11 PM to 1 AM</p>
-                                            <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">3 hours ago</p>
-                                        </div>
-                                        <div class="w-2 h-2 bg-yellow-500 rounded-full flex-shrink-0 mt-2"></div>
                                     </div>
-                                </div>
-
-                                <!-- Read Notification (no dot) -->
-                                <div class="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors opacity-75">
-                                    <div class="flex items-start gap-3">
-                                        <div class="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center flex-shrink-0">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-gray-600 dark:text-gray-400">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
-                                            </svg>
-                                        </div>
-                                        <div class="flex-1 min-w-0">
-                                            <p class="text-sm font-medium text-gray-900 dark:text-gray-100">New Patient Registered</p>
-                                            <p class="text-sm text-gray-600 dark:text-gray-400">Michael Brown has been added to the patient database</p>
-                                            <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">Yesterday</p>
-                                        </div>
-                                    </div>
-                                </div>
+                                </template>
                             </div>
 
                             <!-- Notification Footer -->
                             <div class="px-4 py-3 border-t border-gray-200 dark:border-gray-700">
-                                <button class="w-full text-center text-sm text-primary-600 hover:text-primary-700 font-medium py-1">View All Notifications</button>
+                                <a href="{{ route('notifications') }}" class="w-full text-center text-sm text-primary-600 hover:text-primary-700 font-medium py-1 block">View All Notifications</a>
                             </div>
                         </div>
                     </div>
@@ -297,6 +402,151 @@
         </div>
     </div>
     @endif
+    
+    <script>
+        function notificationDropdown() {
+            return {
+                isOpen: false,
+                unreadCount: 0,
+                notifications: [],
+                loading: false,
+                
+                toggleNotifications() {
+                    this.isOpen = !this.isOpen;
+                    if (this.isOpen && this.notifications.length === 0) {
+                        this.fetchNotifications();
+                    }
+                },
+                
+                fetchNotifications() {
+                    this.loading = true;
+                    fetch('/notifications/unread')
+                        .then(response => response.json())
+                        .then(data => {
+                            this.notifications = data.notifications;
+                            this.unreadCount = data.unread_count;
+                            this.loading = false;
+                        })
+                        .catch(error => {
+                            console.error('Error fetching notifications:', error);
+                            this.loading = false;
+                        });
+                },
+                
+                markAllAsRead() {
+                    fetch('/notifications/mark-all-read', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            this.notifications.forEach(notification => {
+                                notification.read_at = new Date().toISOString();
+                            });
+                            this.unreadCount = 0;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error marking notifications as read:', error);
+                    });
+                },
+                
+                redirectToNotification(notification) {
+                    // Mark as read if not already read
+                    if (!notification.read_at) {
+                        fetch(`/notifications/${notification.id}/read`, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                'Content-Type': 'application/json'
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success && data.redirect_url) {
+                                window.location.href = data.redirect_url;
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error marking notification as read:', error);
+                        });
+                    } else if (notification.action_url) {
+                        window.location.href = notification.action_url;
+                    }
+                },
+                
+                formatTime(dateString) {
+                    const date = new Date(dateString);
+                    const now = new Date();
+                    const diffInSeconds = Math.floor((now - date) / 1000);
+                    
+                    if (diffInSeconds < 60) {
+                        return 'Just now';
+                    } else if (diffInSeconds < 3600) {
+                        const minutes = Math.floor(diffInSeconds / 60);
+                        return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+                    } else if (diffInSeconds < 86400) {
+                        const hours = Math.floor(diffInSeconds / 3600);
+                        return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+                    } else if (diffInSeconds < 604800) {
+                        const days = Math.floor(diffInSeconds / 86400);
+                        return `${days} day${days > 1 ? 's' : ''} ago`;
+                    } else {
+                        return date.toLocaleDateString();
+                    }
+                },
+                
+                getNotificationIconClass(notification) {
+                    const iconClasses = {
+                        'new_patient': 'bg-blue-100 dark:bg-blue-900',
+                        'new_appointment': 'bg-green-100 dark:bg-green-900',
+                        'appointment_reminder': 'bg-yellow-100 dark:bg-yellow-900',
+                        'low_stock': 'bg-red-100 dark:bg-red-900',
+                        'expired_items': 'bg-orange-100 dark:bg-orange-900',
+                        'system': 'bg-gray-100 dark:bg-gray-700'
+                    };
+                    return iconClasses[notification.type] || 'bg-gray-100 dark:bg-gray-700';
+                },
+                
+                getNotificationIconColor(notification) {
+                    const colorClasses = {
+                        'new_patient': 'text-blue-600 dark:text-blue-400',
+                        'new_appointment': 'text-green-600 dark:text-green-400',
+                        'appointment_reminder': 'text-yellow-600 dark:text-yellow-400',
+                        'low_stock': 'text-red-600 dark:text-red-400',
+                        'expired_items': 'text-orange-600 dark:text-orange-400',
+                        'system': 'text-gray-600 dark:text-gray-400'
+                    };
+                    return colorClasses[notification.type] || 'text-gray-600 dark:text-gray-400';
+                },
+                
+                getNotificationIconPath(notification) {
+                    const iconPaths = {
+                        'new_patient': 'M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z',
+                        'new_appointment': 'M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5a2.25 2.25 0 002.25-2.25m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5a2.25 2.25 0 012.25 2.25v7.5m-18 0h18',
+                        'appointment_reminder': 'M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z',
+                        'low_stock': 'M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z',
+                        'expired_items': 'M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z',
+                        'system': 'M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 011.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.56.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.893.149c-.425.07-.765.383-.93.78-.165.398-.143.854.107 1.204l.527.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 01-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.397.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 01-.12-1.45l.527-.737c.25-.35.273-.806.108-1.204-.165-.397-.505-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.107-1.204l-.527-.738a1.125 1.125 0 01.12-1.45l.773-.773a1.125 1.125 0 011.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894z'
+                    };
+                    return iconPaths[notification.type] || iconPaths['system'];
+                },
+                
+                getPriorityDotClass(notification) {
+                    const priorityClasses = {
+                        'high': 'bg-red-500',
+                        'medium': 'bg-yellow-500',
+                        'low': 'bg-blue-500'
+                    };
+                    return priorityClasses[notification.priority] || 'bg-blue-500';
+                }
+            }
+        }
+    </script>
     
     @yield('scripts')
 </body>

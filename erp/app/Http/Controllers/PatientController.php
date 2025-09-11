@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Patient;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 
 class PatientController extends Controller
@@ -51,6 +52,9 @@ class PatientController extends Controller
         ]);
 
         $patient = Patient::create($data);
+
+        // Create notification for new patient
+        NotificationService::createPatientAddedNotification($patient);
 
         return redirect()->route('patients.show', $patient)->with('success', 'Patient created successfully');
     }
