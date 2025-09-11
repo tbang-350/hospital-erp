@@ -269,7 +269,7 @@
                                     </td>
                                     <td class="px-6 py-4 text-right text-sm font-medium">
                                         <div class="flex items-center justify-end gap-2">
-                                            <button onclick="openViewModal({{ $item->id }})"
+                                            <a href="{{ route('inventory.show', $item) }}"
                                                 class="inline-flex items-center px-3 py-1.5 text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300 font-medium rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-200">
                                                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
@@ -280,7 +280,7 @@
                                                     </path>
                                                 </svg>
                                                 View
-                                            </button>
+                                            </a>
                                             <button
                                                 onclick="openEditModal({{ $item->id }}, '{{ addslashes($item->name) }}', '{{ addslashes($item->category) }}', '{{ $item->uom }}', {{ $item->reorder_level }}, {{ $item->unit_cost }}, '{{ $item->expiry_date?->format('Y-m-d') }}', '{{ $item->sku }}', '{{ $item->supplier_id ?? '' }}')"
                                                 class="inline-flex items-center px-3 py-1.5 text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all duration-200">
@@ -620,39 +620,70 @@
             e.preventDefault();
             
             const formData = new FormData(this);
+            const submitButton = this.querySelector('button[type="submit"]');
+            
+            // Disable submit button and show loading state
+            submitButton.disabled = true;
+            submitButton.textContent = 'Adding...';
             
             fetch('/suppliers', {
                 method: 'POST',
                 body: formData,
                 headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'X-Requested-With': 'XMLHttpRequest'
                 }
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     // Add new supplier to both dropdowns
                     const addOption = new Option(data.supplier.name, data.supplier.id);
                     const editOption = new Option(data.supplier.name, data.supplier.id);
                     
-                    document.getElementById('modal_supplier_id').add(addOption);
-                    document.getElementById('edit_supplier_id').add(editOption);
+                    const modalSupplierSelect = document.getElementById('modal_supplier_id');
+                    const editSupplierSelect = document.getElementById('edit_supplier_id');
                     
-                    // Select the new supplier in both dropdowns
-                    document.getElementById('modal_supplier_id').value = data.supplier.id;
-                    document.getElementById('edit_supplier_id').value = data.supplier.id;
+                    if (modalSupplierSelect) {
+                        modalSupplierSelect.add(addOption);
+                        modalSupplierSelect.value = data.supplier.id;
+                    }
+                    
+                    if (editSupplierSelect) {
+                        editSupplierSelect.add(editOption);
+                        editSupplierSelect.value = data.supplier.id;
+                    }
                     
                     closeAddSupplierModal();
                     
                     // Show success message
                     alert('Supplier added successfully!');
                 } else {
-                    alert('Error adding supplier: ' + (data.message || 'Unknown error'));
+                    // Handle validation errors
+                    if (data.errors) {
+                        let errorMessage = 'Validation errors:\n';
+                        Object.keys(data.errors).forEach(field => {
+                            errorMessage += `${field}: ${data.errors[field].join(', ')}\n`;
+                        });
+                        alert(errorMessage);
+                    } else {
+                        alert('Error adding supplier: ' + (data.message || 'Unknown error'));
+                    }
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Error adding supplier. Please try again.');
+                alert('Error adding supplier: ' + error.message + '. Please check the console for more details.');
+            })
+            .finally(() => {
+                // Re-enable submit button
+                submitButton.disabled = false;
+                submitButton.textContent = 'Add Supplier';
             });
         });
     </script>

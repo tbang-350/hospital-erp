@@ -399,10 +399,16 @@
             method: 'POST',
             body: formData,
             headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'X-Requested-With': 'XMLHttpRequest'
             }
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => Promise.reject(err));
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.success) {
                 closeAddSupplierModal();
@@ -411,12 +417,24 @@
                 alert('Supplier added successfully!');
                 window.location.reload();
             } else {
-                alert('Error adding supplier: ' + (data.message || 'Unknown error'));
+                let errorMessage = 'Error adding supplier: ' + (data.message || 'Unknown error');
+                if (data.errors) {
+                    const errorList = Object.values(data.errors).flat();
+                    errorMessage += '\n\nValidation errors:\n' + errorList.join('\n');
+                }
+                alert(errorMessage);
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Error adding supplier. Please try again.');
+            let errorMessage = 'Error adding supplier. Please try again.';
+            if (error.message) {
+                errorMessage = 'Error: ' + error.message;
+            } else if (error.errors) {
+                const errorList = Object.values(error.errors).flat();
+                errorMessage = 'Validation errors:\n' + errorList.join('\n');
+            }
+            alert(errorMessage);
         });
     });
 </script>

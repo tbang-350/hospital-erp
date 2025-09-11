@@ -49,33 +49,57 @@ class SupplierController extends Controller
      */
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'contact_person' => 'nullable|string|max:255',
-            'email' => 'nullable|email|max:255',
-            'phone' => 'nullable|string|max:20',
-            'address' => 'nullable|string|max:1000',
-            'tax_id' => 'nullable|string|max:50',
-            'status' => 'in:active,inactive',
-            'notes' => 'nullable|string|max:1000',
-        ]);
-
-        // Set default status if not provided
-        $data['status'] = $data['status'] ?? 'active';
-
-        $supplier = Supplier::create($data);
-
-        // Handle AJAX requests
-        if ($request->expectsJson() || $request->ajax()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Supplier created successfully',
-                'supplier' => $supplier
+        try {
+            $data = $request->validate([
+                'name' => 'required|string|max:255',
+                'contact_person' => 'nullable|string|max:255',
+                'email' => 'nullable|email|max:255',
+                'phone' => 'nullable|string|max:20',
+                'address' => 'nullable|string|max:1000',
+                'tax_id' => 'nullable|string|max:50',
+                'status' => 'in:active,inactive',
+                'notes' => 'nullable|string|max:1000',
             ]);
-        }
 
-        return redirect()->route('suppliers.index')
-                        ->with('success', 'Supplier created successfully');
+            // Set default status if not provided
+            $data['status'] = $data['status'] ?? 'active';
+
+            $supplier = Supplier::create($data);
+
+            // Handle AJAX requests
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Supplier created successfully',
+                    'supplier' => $supplier
+                ]);
+            }
+
+            return redirect()->route('suppliers.index')
+                            ->with('success', 'Supplier created successfully');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $e->errors()
+                ], 422);
+            }
+            throw $e;
+        } catch (\Exception $e) {
+            \Log::error('Supplier creation failed: ' . $e->getMessage());
+            
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to create supplier: ' . $e->getMessage()
+                ], 500);
+            }
+            
+            return redirect()->back()
+                            ->withInput()
+                            ->with('error', 'Failed to create supplier. Please try again.');
+        }
     }
 
     /**

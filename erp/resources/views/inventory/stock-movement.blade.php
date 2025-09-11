@@ -32,7 +32,7 @@
             <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                 <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Record Stock Movement</h2>
             </div>
-            <form action="{{ route('inventory.stock-movement.store', $item) }}" method="POST" class="p-6">
+            <form action="{{ route('inventory.process-stock-movement', $item) }}" method="POST" class="p-6">
                 @csrf
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -182,21 +182,21 @@
                         <div class="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
                         <span class="text-sm text-gray-600 dark:text-gray-400">Stock In</span>
                     </div>
-                    <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ number_format($item->transactions->stockIn()->sum('quantity')) }}</span>
+                    <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ number_format($item->transactions->where('type', 'in')->sum('quantity')) }}</span>
                 </div>
                 <div class="flex items-center justify-between">
                     <div class="flex items-center">
                         <div class="w-3 h-3 bg-red-500 rounded-full mr-3"></div>
                         <span class="text-sm text-gray-600 dark:text-gray-400">Stock Out</span>
                     </div>
-                    <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ number_format($item->transactions->stockOut()->sum('quantity')) }}</span>
+                    <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ number_format($item->transactions->where('type', 'out')->sum('quantity')) }}</span>
                 </div>
                 <div class="flex items-center justify-between">
                     <div class="flex items-center">
                         <div class="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
                         <span class="text-sm text-gray-600 dark:text-gray-400">Adjustments</span>
                     </div>
-                    <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $item->transactions->adjustment()->count() }}</span>
+                    <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $item->transactions->where('type', 'adjustment')->count() }}</span>
                 </div>
                 <div class="pt-3 border-t border-gray-200 dark:border-gray-700">
                     <div class="flex items-center justify-between">

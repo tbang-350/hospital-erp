@@ -90,23 +90,23 @@ class InventoryItemController extends Controller
         return redirect()->route('inventory.index')->with('success', 'Inventory item created successfully');
     }
 
-    public function show(InventoryItem $inventoryItem)
+    public function show(InventoryItem $inventory)
     {
-        $inventoryItem->load(['transactions' => function($q) {
+        $inventory->load(['transactions' => function($q) {
             $q->latest()->limit(20);
         }]);
 
-        // Pass as 'item' to match the view expectations
-        return view('inventory.show', ['item' => $inventoryItem]);
+        // Pass as 'inventoryItem' to match the view expectations
+        return view('inventory.show', ['inventoryItem' => $inventory]);
     }
 
-    public function edit(InventoryItem $inventoryItem)
+    public function edit(InventoryItem $inventory)
     {
         $suppliers = Supplier::active()->orderBy('name')->get();
-        return view('inventory.edit', compact('inventoryItem', 'suppliers'));
+        return view('inventory.edit', ['inventoryItem' => $inventory, 'suppliers' => $suppliers]);
     }
 
-    public function update(Request $request, InventoryItem $inventoryItem)
+    public function update(Request $request, InventoryItem $inventory)
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
@@ -120,20 +120,30 @@ class InventoryItemController extends Controller
             'description' => 'nullable|string|max:1000',
         ]);
 
-        $inventoryItem->update($data);
+        $inventory->update($data);
 
-        return redirect()->route('inventory.show', $inventoryItem)
+        return redirect()->route('inventory.show', $inventory)
                         ->with('success', 'Inventory item updated successfully');
     }
 
-    public function destroy(InventoryItem $inventoryItem)
+    public function destroy(InventoryItem $inventory)
     {
-        $inventoryItem->delete();
+        $inventory->delete();
         return redirect()->route('inventory.index')
                         ->with('success', 'Inventory item deleted successfully');
     }
 
-    public function stockMovement(Request $request, InventoryItem $inventoryItem)
+    public function stockMovement(InventoryItem $inventory)
+    {
+        // Load recent transactions for display
+        $inventory->load(['transactions' => function($q) {
+            $q->latest()->limit(10);
+        }]);
+        
+        return view('inventory.stock-movement', ['item' => $inventory]);
+    }
+
+    public function processStockMovement(Request $request, InventoryItem $inventory)
     {
         $data = $request->validate([
             'type' => 'required|in:in,out,adjustment',
@@ -143,13 +153,13 @@ class InventoryItemController extends Controller
         ]);
 
         // For stock out, ensure we don't go negative
-        if ($data['type'] === 'out' && $inventoryItem->quantity < $data['quantity']) {
+        if ($data['type'] === 'out' && $inventory->quantity < $data['quantity']) {
             return back()->withErrors(['quantity' => 'Insufficient stock available']);
         }
 
         // Create transaction
         InventoryTransaction::create([
-            'inventory_item_id' => $inventoryItem->id,
+            'inventory_item_id' => $inventory->id,
             'type' => $data['type'],
             'quantity' => $data['quantity'],
             'reference' => $data['reference'],
@@ -159,18 +169,18 @@ class InventoryItemController extends Controller
         // Update inventory quantity
         switch ($data['type']) {
             case 'in':
-                $inventoryItem->increment('quantity', $data['quantity']);
+                $inventory->increment('quantity', $data['quantity']);
                 break;
             case 'out':
-                $inventoryItem->decrement('quantity', $data['quantity']);
+                $inventory->decrement('quantity', $data['quantity']);
                 break;
             case 'adjustment':
-                $inventoryItem->update(['quantity' => $data['quantity']]);
+                $inventory->update(['quantity' => $data['quantity']]);
                 break;
         }
 
-        return redirect()->route('inventory.show', $inventoryItem)
-                        ->with('success', 'Stock movement recorded successfully');
+        return redirect()->route('inventory.show', $inventory)
+                        ->with('success', 'Stock movement processed successfully');
     }
 
     public function lowStock()

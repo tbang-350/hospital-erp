@@ -109,40 +109,40 @@
                         <dl class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">SKU</dt>
-                                <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100 font-mono bg-gray-50 dark:bg-gray-700 px-2 py-1 rounded">{{ $item->sku }}</dd>
+                                <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100 font-mono bg-gray-50 dark:bg-gray-700 px-2 py-1 rounded">{{ $inventoryItem->sku }}</dd>
                             </div>
                             <div>
                                 <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Category</dt>
-                                <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">{{ $item->category ?: 'Uncategorized' }}</dd>
+                                <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">{{ $inventoryItem->category ?: 'Uncategorized' }}</dd>
                             </div>
                             <div>
                                 <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Current Stock</dt>
                                 <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
-                                    <span class="font-semibold">{{ number_format($item->quantity) }}</span> {{ $item->uom }}
+                                    <span class="font-semibold">{{ number_format($inventoryItem->quantity) }}</span> {{ $inventoryItem->uom }}
                                 </dd>
                             </div>
                             <div>
                                 <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Reorder Level</dt>
-                                <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">{{ number_format($item->reorder_level) }} {{ $item->uom }}</dd>
+                                <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">{{ number_format($inventoryItem->reorder_level) }} {{ $inventoryItem->uom }}</dd>
                             </div>
                             <div>
                                 <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Unit Cost</dt>
-                                <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">TZS {{ number_format($item->unit_cost, 2) }}</dd>
+                                <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">TZS {{ number_format($inventoryItem->unit_cost, 2) }}</dd>
                             </div>
                             <div>
                                 <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Value</dt>
-                                <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100 font-semibold">TZS {{ number_format($item->quantity * $item->unit_cost, 2) }}</dd>
+                                <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100 font-semibold">TZS {{ number_format($inventoryItem->quantity * $inventoryItem->unit_cost, 2) }}</dd>
                             </div>
                             <div>
                                 <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Expiry Date</dt>
                                 <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
-                                    @if($item->expiry_date)
-                                        {{ $item->expiry_date->format('M d, Y') }}
-                                        @if($item->isExpired())
+                                    @if($inventoryItem->expiry_date)
+                                        {{ $inventoryItem->expiry_date->format('M d, Y') }}
+                                        @if($inventoryItem->isExpired())
                                             <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
                                                 Expired
                                             </span>
-                                        @elseif($item->isExpiringSoon())
+                                        @elseif($inventoryItem->isExpiringSoon())
                                             <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
                                                 Expiring Soon
                                             </span>
@@ -155,12 +155,12 @@
                             <div>
                                 <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Supplier</dt>
                                 <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
-                                    @if($item->supplier)
-                                        <a href="{{ route('suppliers.show', $item->supplier) }}" class="text-primary-600 hover:text-primary-700 hover:underline">
-                                            {{ $item->supplier->name }}
+                                    @if($inventoryItem->supplier)
+                                        <a href="{{ route('suppliers.show', $inventoryItem->supplier) }}" class="text-primary-600 hover:text-primary-700 hover:underline">
+                                            {{ $inventoryItem->supplier->name }}
                                         </a>
-                                        @if($item->supplier->contact_person)
-                                            <span class="text-gray-500 dark:text-gray-400"> - {{ $item->supplier->contact_person }}</span>
+                                        @if($inventoryItem->supplier->contact_person)
+                                            <span class="text-gray-500 dark:text-gray-400"> - {{ $inventoryItem->supplier->contact_person }}</span>
                                         @endif
                                     @else
                                         <span class="text-gray-500 dark:text-gray-400">No supplier specified</span>
@@ -170,7 +170,7 @@
                             <div>
                                 <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Stock Status</dt>
                                 <dd class="mt-1">
-                                    @if($item->isLowStock())
+                                    @if($inventoryItem->isLowStock())
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
                                             Low Stock
                                         </span>
@@ -183,11 +183,11 @@
                             </div>
                             <div class="md:col-span-2">
                                 <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Created</dt>
-                                <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">{{ $item->created_at->format('M d, Y \a\t g:i A') }}</dd>
+                                <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">{{ $inventoryItem->created_at->format('M d, Y \a\t g:i A') }}</dd>
                             </div>
                             <div class="md:col-span-2">
                                 <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Last Updated</dt>
-                                <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">{{ $item->updated_at->format('M d, Y \a\t g:i A') }}</dd>
+                                <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">{{ $inventoryItem->updated_at->format('M d, Y \a\t g:i A') }}</dd>
                             </div>
                         </dl>
                     </div>
@@ -206,19 +206,19 @@
                     <div class="p-6 space-y-4">
                         <div class="flex items-center justify-between">
                             <span class="text-sm text-gray-600 dark:text-gray-400">Total Transactions</span>
-                            <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $item->transactions->count() }}</span>
+                            <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $inventoryItem->transactions->count() }}</span>
                         </div>
                         <div class="flex items-center justify-between">
                             <span class="text-sm text-gray-600 dark:text-gray-400">Stock In</span>
-                            <span class="text-sm font-semibold text-green-600 dark:text-green-400">{{ $item->transactions->stockIn()->sum('quantity') }}</span>
+                            <span class="text-sm font-semibold text-green-600 dark:text-green-400">{{ $inventoryItem->transactions->where('type', 'in')->sum('quantity') }}</span>
                         </div>
                         <div class="flex items-center justify-between">
                             <span class="text-sm text-gray-600 dark:text-gray-400">Stock Out</span>
-                            <span class="text-sm font-semibold text-red-600 dark:text-red-400">{{ $item->transactions->stockOut()->sum('quantity') }}</span>
+                            <span class="text-sm font-semibold text-red-600 dark:text-red-400">{{ $inventoryItem->transactions->where('type', 'out')->sum('quantity') }}</span>
                         </div>
                         <div class="flex items-center justify-between">
                             <span class="text-sm text-gray-600 dark:text-gray-400">Adjustments</span>
-                            <span class="text-sm font-semibold text-blue-600 dark:text-blue-400">{{ $item->transactions->adjustment()->count() }}</span>
+                            <span class="text-sm font-semibold text-blue-600 dark:text-blue-400">{{ $inventoryItem->transactions->where('type', 'adjustment')->count() }}</span>
                         </div>
                     </div>
                 </div>
@@ -239,19 +239,19 @@
                     <div class="p-6 space-y-4">
                         <div class="flex items-center justify-between">
                             <span class="text-sm text-gray-600 dark:text-gray-400">Total Transactions</span>
-                            <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $item->transactions->count() }}</span>
+                            <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $inventoryItem->transactions->count() }}</span>
                         </div>
                         <div class="flex items-center justify-between">
                             <span class="text-sm text-gray-600 dark:text-gray-400">Stock In</span>
-                            <span class="text-sm font-semibold text-green-600 dark:text-green-400">{{ $item->transactions->stockIn()->sum('quantity') }}</span>
+                            <span class="text-sm font-semibold text-green-600 dark:text-green-400">{{ $inventoryItem->transactions->where('type', 'in')->sum('quantity') }}</span>
                         </div>
                         <div class="flex items-center justify-between">
                             <span class="text-sm text-gray-600 dark:text-gray-400">Stock Out</span>
-                            <span class="text-sm font-semibold text-red-600 dark:text-red-400">{{ $item->transactions->stockOut()->sum('quantity') }}</span>
+                            <span class="text-sm font-semibold text-red-600 dark:text-red-400">{{ $inventoryItem->transactions->where('type', 'out')->sum('quantity') }}</span>
                         </div>
                         <div class="flex items-center justify-between">
                             <span class="text-sm text-gray-600 dark:text-gray-400">Adjustments</span>
-                            <span class="text-sm font-semibold text-blue-600 dark:text-blue-400">{{ $item->transactions->adjustment()->count() }}</span>
+                            <span class="text-sm font-semibold text-blue-600 dark:text-blue-400">{{ $inventoryItem->transactions->where('type', 'adjustment')->count() }}</span>
                         </div>
                     </div>
                 </div>

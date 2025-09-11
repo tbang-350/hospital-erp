@@ -77,7 +77,7 @@ class InventoryTransactionController extends Controller
             $inventoryItem->update(['quantity' => max(0, $newQuantity)]);
         });
 
-        return redirect()->route('inventory.show', $inventoryItem)
+        return redirect()->route('inventory.show', $inventoryItem->id)
             ->with('success', 'Stock transaction recorded successfully.');
     }
 

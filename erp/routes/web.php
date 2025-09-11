@@ -48,11 +48,11 @@ Route::get('/invoices/{invoice}', [InvoiceController::class, 'show'])->name('inv
 
 // Inventory Management Routes
 Route::resource('inventory', InventoryItemController::class);
-Route::get('inventory/{inventoryItem}/stock-movement', [InventoryItemController::class, 'stockMovement'])->name('inventory.stock-movement');
+Route::get('inventory/{inventory}/stock-movement', [InventoryItemController::class, 'stockMovement'])->name('inventory.stock-movement');
 
 // Supplier Management Routes
 Route::resource('suppliers', SupplierController::class);
-Route::post('inventory/{inventoryItem}/stock-movement', [InventoryItemController::class, 'processStockMovement'])->name('inventory.process-stock-movement');
+Route::post('inventory/{inventory}/stock-movement', [InventoryItemController::class, 'processStockMovement'])->name('inventory.process-stock-movement');
 Route::get('inventory-reports/low-stock', [InventoryItemController::class, 'lowStock'])->name('inventory.low-stock');
 Route::get('inventory-reports/expiring', [InventoryItemController::class, 'expiring'])->name('inventory.expiring');
 
