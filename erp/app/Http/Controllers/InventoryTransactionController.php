@@ -12,11 +12,43 @@ class InventoryTransactionController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $transactions = InventoryTransaction::with('inventoryItem')
-            ->orderBy('created_at', 'desc')
-            ->paginate(20);
+        $query = InventoryTransaction::with('inventoryItem');
+
+        // Search functionality
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('reference', 'like', "%{$search}%")
+                  ->orWhere('remarks', 'like', "%{$search}%")
+                  ->orWhereHas('inventoryItem', function($q) use ($search) {
+                      $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('sku', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        // Filter by transaction type
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        }
+
+        // Sorting
+        $sortField = $request->get('sort', 'created_at');
+        $sortDirection = $request->get('direction', 'desc');
+        
+        if ($sortField === 'inventory_item') {
+            $query->join('inventory_items', 'inventory_transactions.inventory_item_id', '=', 'inventory_items.id')
+                  ->orderBy('inventory_items.name', $sortDirection)
+                  ->select('inventory_transactions.*');
+        } else {
+            $query->orderBy($sortField, $sortDirection);
+        }
+
+        // Per page selection
+        $perPage = $request->get('per_page', 20);
+        $transactions = $query->paginate($perPage);
 
         return view('inventory.transactions.index', compact('transactions'));
     }
@@ -125,7 +157,7 @@ class InventoryTransactionController extends Controller
     public function getItemTransactions(InventoryItem $inventoryItem)
     {
         $transactions = $inventoryItem->transactions()
-            ->orderBy('created_at', 'desc')
+            ->latest()
             ->paginate(10);
 
         return response()->json($transactions);
@@ -157,7 +189,7 @@ class InventoryTransactionController extends Controller
             $query->where('inventory_item_id', $request->inventory_item_id);
         }
 
-        $transactions = $query->orderBy('created_at', 'desc')->paginate(50);
+        $transactions = $query->latest()->paginate(50);
 
         return view('inventory.reports.stock-movement', compact('transactions'));
     }
@@ -189,7 +221,7 @@ class InventoryTransactionController extends Controller
             $query->where('inventory_item_id', $request->inventory_item_id);
         }
 
-        $transactions = $query->orderBy('created_at', 'desc')->get();
+        $transactions = $query->latest()->get();
 
         // For now, return JSON. In production, implement CSV/Excel export
         return response()->json([

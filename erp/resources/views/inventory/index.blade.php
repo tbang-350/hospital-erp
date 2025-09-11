@@ -34,14 +34,14 @@
                         </svg>
                         Expiring Items
                     </a>
-                    <button onclick="openAddItemModal()"
+                    <a href="{{ route('inventory.create') }}"
                         class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-all duration-200">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                         </svg>
                         Add New Item
-                    </button>
+                    </a>
                 </div>
             </div>
 
@@ -52,7 +52,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm font-medium text-gray-600 dark:text-gray-300">Total Items</p>
-                            <p class="text-3xl font-bold text-purple-600 dark:text-purple-400">{{ $items->total() }}</p>
+                            <p class="text-3xl font-bold text-purple-600 dark:text-purple-400">{{ number_format($totalItems) }}</p>
                         </div>
                         <div class="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
                             <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor"
@@ -69,8 +69,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm font-medium text-gray-600 dark:text-gray-300">Low Stock Items</p>
-                            <p class="text-3xl font-bold text-yellow-600 dark:text-yellow-400">
-                                {{ $items->filter(fn($item) => $item->isLowStock())->count() }}</p>
+                            <p class="text-3xl font-bold text-yellow-600 dark:text-yellow-400">{{ number_format($lowStockCount) }}</p>
                         </div>
                         <div class="p-3 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
                             <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor"
@@ -88,8 +87,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm font-medium text-gray-600 dark:text-gray-300">Expiring Soon</p>
-                            <p class="text-3xl font-bold text-orange-600 dark:text-orange-400">
-                                {{ $items->filter(fn($item) => $item->isExpiringSoon())->count() }}</p>
+                            <p class="text-3xl font-bold text-orange-600 dark:text-orange-400">{{ number_format($expiringSoonCount) }}</p>
                         </div>
                         <div class="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
                             <svg class="w-6 h-6 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor"
@@ -106,8 +104,17 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm font-medium text-gray-600 dark:text-gray-300">Total Value</p>
-                            <p class="text-3xl font-bold text-green-600 dark:text-green-400">TZS
-                                {{ number_format($items->sum(fn($item) => $item->quantity * $item->unit_cost), 2) }}</p>
+                            @php
+                                $formattedValue = $totalInventoryValue >= 1000000 
+                                    ? number_format($totalInventoryValue / 1000000, 1) . 'M'
+                                    : ($totalInventoryValue >= 1000 
+                                        ? number_format($totalInventoryValue / 1000, 1) . 'K'
+                                        : number_format($totalInventoryValue, 2));
+                            @endphp
+                            <p class="text-3xl font-bold text-green-600 dark:text-green-400" title="TZS {{ number_format($totalInventoryValue, 2) }}">
+                                TZS {{ $formattedValue }}
+                            </p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">All inventory items</p>
                         </div>
                         <div class="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
                             <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor"
@@ -122,9 +129,10 @@
             </div>
 
             <!-- Search and Filter Section -->
-            <div class="flex flex-col sm:flex-row gap-3 w-full mb-6">
+            <form method="GET" action="{{ route('inventory.index') }}" class="flex flex-col sm:flex-row gap-3 w-full mb-6">
                 <div class="relative flex-1">
-                    <input type="text" placeholder="Search inventory items..."
+                    <input type="text" id="search" name="search" value="{{ request('search') }}"
+                           placeholder="Search inventory items..."
                         class="pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white w-full">
                     <svg class="absolute left-3 top-2.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor"
                         viewBox="0 0 24 24">
@@ -133,7 +141,7 @@
                     </svg>
                 </div>
 
-                <select
+                <select id="category_filter" name="category" onchange="this.form.submit()"
                     class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
                     <option value="">All Categories</option>
                     @foreach ($categories as $category)
@@ -142,7 +150,7 @@
                     @endforeach
                 </select>
 
-                <select
+                <select id="stock_status_filter" name="stock_status" onchange="this.form.submit()"
                     class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
                     <option value="">All Status</option>
                     <option value="low" {{ request('stock_status') == 'low' ? 'selected' : '' }}>Low Stock</option>
@@ -151,7 +159,21 @@
                     <option value="expiring" {{ request('stock_status') == 'expiring' ? 'selected' : '' }}>Expiring Soon
                     </option>
                 </select>
-            </div>
+
+                <select id="per_page" name="per_page" onchange="this.form.submit()"
+                    class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                    <option value="10" {{ request('per_page', 15) == 10 ? 'selected' : '' }}>10 per page</option>
+                    <option value="15" {{ request('per_page', 15) == 15 ? 'selected' : '' }}>15 per page</option>
+                    <option value="25" {{ request('per_page', 15) == 25 ? 'selected' : '' }}>25 per page</option>
+                    <option value="50" {{ request('per_page', 15) == 50 ? 'selected' : '' }}>50 per page</option>
+                </select>
+
+                <button type="submit" class="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-all duration-200">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </button>
+            </form>
 
             <!-- Inventory Items Table -->
             <div
@@ -161,23 +183,59 @@
                         <thead class="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-gray-700 dark:to-gray-600">
                             <tr>
                                 <th
-                                    class="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                    Item Details</th>
+                                    class="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-purple-100 dark:hover:bg-gray-600 transition-colors" onclick="sortTable('name')">
+                                    <div class="flex items-center space-x-1">
+                                        <span>Item Details</span>
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"></path>
+                                        </svg>
+                                    </div>
+                                </th>
                                 <th
-                                    class="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                    Category</th>
+                                    class="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-purple-100 dark:hover:bg-gray-600 transition-colors" onclick="sortTable('category')">
+                                    <div class="flex items-center space-x-1">
+                                        <span>Category</span>
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"></path>
+                                        </svg>
+                                    </div>
+                                </th>
                                 <th
-                                    class="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                    Stock</th>
+                                    class="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-purple-100 dark:hover:bg-gray-600 transition-colors" onclick="sortTable('quantity')">
+                                    <div class="flex items-center space-x-1">
+                                        <span>Stock</span>
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"></path>
+                                        </svg>
+                                    </div>
+                                </th>
                                 <th
-                                    class="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                    Unit Cost</th>
+                                    class="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-purple-100 dark:hover:bg-gray-600 transition-colors" onclick="sortTable('unit_cost')">
+                                    <div class="flex items-center space-x-1">
+                                        <span>Unit Cost</span>
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"></path>
+                                        </svg>
+                                    </div>
+                                </th>
                                 <th
-                                    class="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                    Supplier</th>
+                                    class="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-purple-100 dark:hover:bg-gray-600 transition-colors" onclick="sortTable('supplier')">
+                                    <div class="flex items-center space-x-1">
+                                        <span>Supplier</span>
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"></path>
+                                        </svg>
+                                    </div>
+                                </th>
                                 <th
-                                    class="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                    Expiry</th>
+                                    class="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-purple-100 dark:hover:bg-gray-600 transition-colors" onclick="sortTable('expiry_date')">
+                                    <div class="flex items-center space-x-1">
+                                        <span>Expiry</span>
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"></path>
+                                        </svg>
+                                    </div>
+                                </th>
                                 <th
                                     class="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                     Status</th>
@@ -281,17 +339,16 @@
                                                 </svg>
                                                 View
                                             </a>
-                                            <button
-                                                onclick="openEditModal({{ $item->id }}, '{{ addslashes($item->name) }}', '{{ addslashes($item->category) }}', '{{ $item->uom }}', {{ $item->reorder_level }}, {{ $item->unit_cost }}, '{{ $item->expiry_date?->format('Y-m-d') }}', '{{ $item->sku }}', '{{ $item->supplier_id ?? '' }}')"
-                                                class="inline-flex items-center px-3 py-1.5 text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all duration-200">
-                                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor"
-                                                    viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
-                                                    </path>
-                                                </svg>
-                                                Edit
-                                            </button>
+                                            <a href="{{ route('inventory.edit', $item) }}"
+                                class="inline-flex items-center px-3 py-1.5 text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all duration-200">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                                    </path>
+                                </svg>
+                                Edit
+                            </a>
                                         </div>
                                     </td>
                                 </tr>
@@ -338,8 +395,6 @@
     </div>
 
     <!-- Include the Add Item Modal Partial -->
-    @include('inventory.partials.add-item-modal')
-
     <!-- Add Supplier Modal -->
     <div id="addSupplierModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden" style="z-index: 60;">
         <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-xl bg-white dark:bg-gray-800">
@@ -404,204 +459,38 @@
         </div>
     </div>
 
-    <!-- Edit Item Modal -->
-    <div id="editModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
-        <div
-            class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-xl bg-white dark:bg-gray-800">
-            <div class="mt-3">
-                <!-- Modal Header -->
-                <div class="flex items-center justify-between pb-4 border-b border-gray-200 dark:border-gray-700">
-                    <h3 class="text-2xl font-bold text-purple-600 dark:text-purple-400">Edit Inventory Item</h3>
-                    <button onclick="closeEditModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
-                </div>
 
-                <!-- Modal Body -->
-                <form id="editForm" method="POST" class="mt-6">
-                    @csrf
-                    @method('PUT')
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- SKU (Read-only) -->
-                        <div>
-                            <label for="edit_sku"
-                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">SKU</label>
-                            <input type="text" id="edit_sku" readonly
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
-                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">SKU cannot be modified</p>
-                        </div>
-
-                        <!-- Item Name -->
-                        <div>
-                            <label for="edit_name"
-                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Item Name *</label>
-                            <input type="text" id="edit_name" name="name" required
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-purple-500 focus:border-purple-500 dark:bg-gray-700 dark:text-white">
-                        </div>
-
-                        <!-- Category -->
-                        <div>
-                            <label for="edit_category"
-                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category</label>
-                            <input type="text" id="edit_category" name="category"
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-purple-500 focus:border-purple-500 dark:bg-gray-700 dark:text-white">
-                        </div>
-
-                        <!-- Unit of Measurement -->
-                        <div>
-                            <label for="edit_uom"
-                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Unit of Measurement
-                                *</label>
-                            <select id="edit_uom" name="uom" required
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-purple-500 focus:border-purple-500 dark:bg-gray-700 dark:text-white">
-                                <option value="">Select unit</option>
-                                <option value="unit">Unit</option>
-                                <option value="box">Box</option>
-                                <option value="bottle">Bottle</option>
-                                <option value="vial">Vial</option>
-                                <option value="tablet">Tablet</option>
-                                <option value="capsule">Capsule</option>
-                                <option value="ml">ML</option>
-                                <option value="liter">Liter</option>
-                                <option value="kg">KG</option>
-                                <option value="gram">Gram</option>
-                                <option value="pack">Pack</option>
-                            </select>
-                        </div>
-
-                        <!-- Reorder Level -->
-                        <div>
-                            <label for="edit_reorder_level"
-                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Reorder Level
-                                *</label>
-                            <input type="number" id="edit_reorder_level" name="reorder_level" min="0" required
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-purple-500 focus:border-purple-500 dark:bg-gray-700 dark:text-white">
-                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Alert when stock falls below this
-                                level</p>
-                        </div>
-
-                        <!-- Unit Cost -->
-                        <div>
-                            <label for="edit_unit_cost"
-                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Unit Cost (TZS)
-                                *</label>
-                            <input type="number" id="edit_unit_cost" name="unit_cost" min="0" step="0.01"
-                                required
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-purple-500 focus:border-purple-500 dark:bg-gray-700 dark:text-white">
-                        </div>
-
-                        <!-- Expiry Date -->
-                        <div>
-                            <label for="edit_expiry_date"
-                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Expiry Date</label>
-                            <input type="date" id="edit_expiry_date" name="expiry_date"
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-purple-500 focus:border-purple-500 dark:bg-gray-700 dark:text-white"
-                                min="{{ date('Y-m-d', strtotime('+1 day')) }}">
-                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Leave blank if item doesn't expire</p>
-                        </div>
-
-                        <!-- Supplier -->
-                        <div>
-                            <label for="edit_supplier_id"
-                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Supplier</label>
-                            <select id="edit_supplier_id" name="supplier_id"
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-purple-500 focus:border-purple-500 dark:bg-gray-700 dark:text-white">
-                                <option value="">Select Supplier (Optional)</option>
-                                @foreach($suppliers as $supplier)
-                                    <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
-                                @endforeach
-                            </select>
-                            <div class="mt-2">
-                                <button type="button" onclick="openAddSupplierModal()" class="text-sm text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium">
-                                    + Add new supplier
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Modal Footer -->
-                    <div
-                        class="flex items-center justify-end pt-6 border-t border-gray-200 dark:border-gray-700 mt-6 gap-3">
-                        <button type="button" onclick="closeEditModal()"
-                            class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white font-medium rounded-lg transition-colors">
-                            Cancel
-                        </button>
-                        <button type="submit"
-                            class="px-6 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-all duration-200">
-                            Update Item
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
 
     <script>
-        // Add Item Modal Functions (using existing partial functions)
-        function openAddModal() {
-            openAddItemModal();
-        }
+        // Sorting functionality
+         function sortTable(column) {
+             const url = new URL(window.location);
+             const currentSort = url.searchParams.get('sort');
+             const currentDirection = url.searchParams.get('direction');
+             
+             let newDirection = 'asc';
+             if (currentSort === column && currentDirection === 'asc') {
+                 newDirection = 'desc';
+             }
+             
+             url.searchParams.set('sort', column);
+             url.searchParams.set('direction', newDirection);
+             
+             window.location.href = url.toString();
+         }
 
-        function openAddItemModal() {
-            document.getElementById('addItemModal').classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-        }
+         // Handle search input with debounce
+         document.getElementById('search').addEventListener('input', function(e) {
+             clearTimeout(this.searchTimeout);
+             this.searchTimeout = setTimeout(() => {
+                 this.form.submit();
+             }, 500);
+         });
 
-        function closeAddItemModal() {
-            document.getElementById('addItemModal').classList.add('hidden');
-            document.body.style.overflow = 'auto';
-            // Reset form
-            document.querySelector('#addItemModal form').reset();
-        }
-
-        // Edit Item Modal Functions
-        function openEditModal(id, name, category, uom, reorderLevel, unitCost, expiryDate, sku, supplierId) {
-            document.getElementById('editModal').classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-
-            // Set form action
-            document.getElementById('editForm').action = `/inventory/${id}`;
-
-            // Populate form fields
-            document.getElementById('edit_sku').value = sku;
-            document.getElementById('edit_name').value = name;
-            document.getElementById('edit_category').value = category || '';
-            document.getElementById('edit_uom').value = uom;
-            document.getElementById('edit_reorder_level').value = reorderLevel;
-            document.getElementById('edit_unit_cost').value = unitCost;
-            document.getElementById('edit_expiry_date').value = expiryDate || '';
-            document.getElementById('edit_supplier_id').value = supplierId || '';
-        }
-
-        function closeEditModal() {
-            document.getElementById('editModal').classList.add('hidden');
-            document.body.style.overflow = 'auto';
-        }
-
-        // Close modals when clicking outside
-        window.onclick = function(event) {
-            const addModal = document.getElementById('addItemModal');
-            const editModal = document.getElementById('editModal');
-
-            if (event.target === addModal) {
-                closeAddItemModal();
-            }
-            if (event.target === editModal) {
-                closeEditModal();
-            }
-        }
-
-        // Close modals with Escape key
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') {
-                closeAddItemModal();
-                closeEditModal();
-            }
-        });
+         // Handle per page selection
+         document.getElementById('per_page').addEventListener('change', function(e) {
+             this.form.submit();
+         });
 
         // Supplier Modal Functions
         function openAddSupplierModal() {

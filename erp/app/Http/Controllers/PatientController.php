@@ -7,9 +7,23 @@ use Illuminate\Http\Request;
 
 class PatientController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $patients = Patient::latest()->paginate(10);
+        $sortField = $request->get('sort', 'created_at');
+        $sortDirection = $request->get('direction', 'desc');
+        $perPage = $request->get('per_page', 15);
+
+        $patients = Patient::when(request('search'), function ($query) {
+                $query->where('name', 'like', '%' . request('search') . '%')
+                      ->orWhere('email', 'like', '%' . request('search') . '%')
+                      ->orWhere('phone', 'like', '%' . request('search') . '%');
+            })
+            ->when(request('gender'), function ($query) {
+                $query->where('gender', request('gender'));
+            })
+            ->orderBy($sortField, $sortDirection)
+            ->paginate($perPage);
+
         return view('patients.index', compact('patients'));
     }
 

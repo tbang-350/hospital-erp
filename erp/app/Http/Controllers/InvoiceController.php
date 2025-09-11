@@ -51,9 +51,32 @@ class InvoiceController extends Controller
         return redirect()->route('patients.show', $invoice->patient_id)->with('success', 'Invoice created');
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $invoices = Invoice::with('patient')->latest()->paginate(10);
+        $sortField = $request->get('sort', 'created_at');
+        $sortDirection = $request->get('direction', 'desc');
+        $perPage = $request->get('per_page', 10);
+        
+        $query = Invoice::with('patient');
+        
+        // Search functionality
+        if ($request->filled('search')) {
+            $search = $request->get('search');
+            $query->where(function($q) use ($search) {
+                $q->where('invoice_number', 'like', "%{$search}%")
+                  ->orWhereHas('patient', function($q) use ($search) {
+                      $q->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%");
+                  });
+            });
+        }
+        
+        // Status filter
+        if ($request->filled('status')) {
+            $query->where('status', $request->get('status'));
+        }
+        
+        $invoices = $query->orderBy($sortField, $sortDirection)->paginate($perPage);
         return view('invoices.index', compact('invoices'));
     }
 

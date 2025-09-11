@@ -12,6 +12,10 @@ class SupplierController extends Controller
      */
     public function index(Request $request)
     {
+        $sortField = $request->get('sort', 'created_at');
+        $sortDirection = $request->get('direction', 'desc');
+        $perPage = $request->get('per_page', 15);
+
         $query = Supplier::query();
 
         // Search functionality
@@ -20,7 +24,8 @@ class SupplierController extends Controller
             $query->where(function($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('contact_person', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%");
             });
         }
 
@@ -30,8 +35,8 @@ class SupplierController extends Controller
         }
 
         $suppliers = $query->withCount('inventoryItems')
-                          ->orderBy('name')
-                          ->paginate(15);
+                          ->orderBy($sortField, $sortDirection)
+                          ->paginate($perPage);
 
         return view('suppliers.index', compact('suppliers'));
     }
@@ -108,7 +113,7 @@ class SupplierController extends Controller
     public function show(Supplier $supplier)
     {
         $supplier->load(['inventoryItems' => function($query) {
-            $query->orderBy('name');
+            $query->latest();
         }]);
 
         return view('suppliers.show', compact('supplier'));

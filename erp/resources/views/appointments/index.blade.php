@@ -13,9 +13,9 @@
             </div>
 
             <!-- Search and Filter Section -->
-            <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            <form method="GET" action="{{ route('appointments.index') }}" class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                 <div class="relative">
-                    <input type="text"
+                    <input type="text" id="search" name="search" value="{{ request('search') }}"
                            placeholder="Search appointments..."
                            class="pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white w-full sm:w-64">
                     <svg class="absolute left-3 top-2.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -23,13 +23,27 @@
                     </svg>
                 </div>
 
-                <select class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                <select id="status_filter" name="status" onchange="this.form.submit()" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
                     <option value="">All Status</option>
-                    <option value="scheduled">Scheduled</option>
-                    <option value="completed">Completed</option>
-                    <option value="cancelled">Cancelled</option>
+                    <option value="scheduled" {{ request('status') == 'scheduled' ? 'selected' : '' }}>Scheduled</option>
+                    <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
+                    <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                    <option value="no-show" {{ request('status') == 'no-show' ? 'selected' : '' }}>No Show</option>
                 </select>
-            </div>
+
+                <select id="per_page" name="per_page" onchange="this.form.submit()" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                    <option value="10" {{ request('per_page', 15) == 10 ? 'selected' : '' }}>10 per page</option>
+                    <option value="15" {{ request('per_page', 15) == 15 ? 'selected' : '' }}>15 per page</option>
+                    <option value="25" {{ request('per_page', 15) == 25 ? 'selected' : '' }}>25 per page</option>
+                    <option value="50" {{ request('per_page', 15) == 50 ? 'selected' : '' }}>50 per page</option>
+                </select>
+
+                <button type="submit" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-all duration-200">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </button>
+            </form>
         </div>
 
         <!-- Stats Cards -->
@@ -102,7 +116,20 @@
                     <thead class="bg-gray-50 dark:bg-gray-700/50">
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                Scheduled
+                                <a href="{{ route('appointments.index', array_merge(request()->query(), ['sort' => 'scheduled_at', 'direction' => request('sort') === 'scheduled_at' && request('direction') === 'asc' ? 'desc' : 'asc'])) }}" class="flex items-center hover:text-blue-600 dark:hover:text-blue-400">
+                                    Scheduled
+                                    @if(request('sort') === 'scheduled_at')
+                                        @if(request('direction') === 'asc')
+                                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+                                            </svg>
+                                        @else
+                                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                            </svg>
+                                        @endif
+                                    @endif
+                                </a>
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                 Patient
@@ -111,10 +138,36 @@
                                 Staff
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                Status
+                                <a href="{{ route('appointments.index', array_merge(request()->query(), ['sort' => 'status', 'direction' => request('sort') === 'status' && request('direction') === 'asc' ? 'desc' : 'asc'])) }}" class="flex items-center hover:text-blue-600 dark:hover:text-blue-400">
+                                    Status
+                                    @if(request('sort') === 'status')
+                                        @if(request('direction') === 'asc')
+                                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+                                            </svg>
+                                        @else
+                                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                            </svg>
+                                        @endif
+                                    @endif
+                                </a>
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                Location
+                                <a href="{{ route('appointments.index', array_merge(request()->query(), ['sort' => 'location', 'direction' => request('sort') === 'location' && request('direction') === 'asc' ? 'desc' : 'asc'])) }}" class="flex items-center hover:text-blue-600 dark:hover:text-blue-400">
+                                    Location
+                                    @if(request('sort') === 'location')
+                                        @if(request('direction') === 'asc')
+                                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+                                            </svg>
+                                        @else
+                                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                            </svg>
+                                        @endif
+                                    @endif
+                                </a>
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                 Reason
@@ -229,3 +282,20 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+// Debounced search functionality
+let searchTimeout;
+const searchInput = document.getElementById('search');
+
+if (searchInput) {
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            this.form.submit();
+        }, 500);
+    });
+}
+</script>
+@endpush

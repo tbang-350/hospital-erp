@@ -46,16 +46,41 @@ class InventoryItemController extends Controller
             }
         }
 
-        $items = $query->latest()->paginate(15);
-        $categories = InventoryItem::distinct()->pluck('category')->filter();
-        $suppliers = Supplier::active()->orderBy('name')->get();
+        // Sorting
+        $sortField = $request->get('sort', 'created_at');
+        $sortDirection = $request->get('direction', 'desc');
+        
+        if ($sortField === 'supplier') {
+            $query->leftJoin('suppliers', 'inventory_items.supplier_id', '=', 'suppliers.id')
+                  ->orderBy('suppliers.name', $sortDirection)
+                  ->select('inventory_items.*');
+        } else {
+            $query->orderBy($sortField, $sortDirection);
+        }
 
-        return view('inventory.index', compact('items', 'categories', 'suppliers'));
+        // Per page selection
+        $perPage = $request->get('per_page', 15);
+        $items = $query->paginate($perPage);
+        
+        $categories = InventoryItem::distinct()->pluck('category')->filter();
+        $suppliers = Supplier::active()->latest()->get();
+        
+        // Calculate summary statistics for better performance
+        $totalItems = InventoryItem::count();
+        $lowStockCount = InventoryItem::whereRaw('quantity <= reorder_level')->count();
+        $expiringSoonCount = InventoryItem::whereNotNull('expiry_date')
+            ->whereBetween('expiry_date', [now(), now()->addDays(30)])->count();
+        $totalInventoryValue = InventoryItem::selectRaw('SUM(quantity * unit_cost) as total_value')->value('total_value') ?? 0;
+
+        return view('inventory.index', compact(
+            'items', 'categories', 'suppliers', 'totalItems', 
+            'lowStockCount', 'expiringSoonCount', 'totalInventoryValue'
+        ));
     }
 
     public function create()
     {
-        $suppliers = Supplier::active()->orderBy('name')->get();
+        $suppliers = Supplier::active()->latest()->get();
         return view('inventory.create', compact('suppliers'));
     }
 
@@ -102,7 +127,7 @@ class InventoryItemController extends Controller
 
     public function edit(InventoryItem $inventory)
     {
-        $suppliers = Supplier::active()->orderBy('name')->get();
+        $suppliers = Supplier::active()->latest()->get();
         return view('inventory.edit', ['inventoryItem' => $inventory, 'suppliers' => $suppliers]);
     }
 
@@ -140,7 +165,9 @@ class InventoryItemController extends Controller
             $q->latest()->limit(10);
         }]);
         
-        return view('inventory.stock-movement', ['item' => $inventory]);
+        $suppliers = Supplier::active()->latest()->get();
+        
+        return view('inventory.stock-movement', ['item' => $inventory, 'suppliers' => $suppliers]);
     }
 
     public function processStockMovement(Request $request, InventoryItem $inventory)
@@ -186,7 +213,7 @@ class InventoryItemController extends Controller
     public function lowStock()
     {
         $lowStockItems = InventoryItem::whereRaw('quantity <= reorder_level')
-                                ->orderBy('quantity')
+                                ->latest()
                                 ->get();
 
         $criticalItems = $lowStockItems->where('quantity', '<=', 5);
@@ -194,8 +221,9 @@ class InventoryItemController extends Controller
         $totalValueAtRisk = $lowStockItems->sum(function($item) {
             return $item->quantity * $item->unit_cost;
         });
+        $suppliers = Supplier::active()->latest()->get();
 
-        return view('inventory.low-stock', compact('lowStockItems', 'criticalItems', 'categoriesAffected', 'totalValueAtRisk'));
+        return view('inventory.low-stock', compact('lowStockItems', 'criticalItems', 'categoriesAffected', 'totalValueAtRisk', 'suppliers'));
     }
 
     public function expiring()

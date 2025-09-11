@@ -26,7 +26,7 @@
         <!-- Search and Filter Section -->
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8">
             <form method="GET" action="{{ route('suppliers.index') }}" class="space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div class="md:col-span-2">
                         <label for="search" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Search Suppliers</label>
                         <div class="relative">
@@ -38,10 +38,19 @@
                     </div>
                     <div>
                         <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
-                        <select id="status" name="status" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                        <select id="status" name="status" onchange="this.form.submit()" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
                             <option value="">All Status</option>
                             <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
                             <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="per_page" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Per Page</label>
+                        <select id="per_page" name="per_page" onchange="this.form.submit()" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                            <option value="10" {{ request('per_page', 15) == 10 ? 'selected' : '' }}>10 per page</option>
+                            <option value="15" {{ request('per_page', 15) == 15 ? 'selected' : '' }}>15 per page</option>
+                            <option value="25" {{ request('per_page', 15) == 25 ? 'selected' : '' }}>25 per page</option>
+                            <option value="50" {{ request('per_page', 15) == 50 ? 'selected' : '' }}>50 per page</option>
                         </select>
                     </div>
                 </div>
@@ -68,10 +77,55 @@
                 <table class="w-full">
                     <thead class="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-gray-700 dark:to-gray-600">
                         <tr>
-                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Supplier Details</th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                <a href="{{ route('suppliers.index', array_merge(request()->query(), ['sort' => 'name', 'direction' => request('sort') === 'name' && request('direction') === 'asc' ? 'desc' : 'asc'])) }}" class="flex items-center hover:text-green-600 dark:hover:text-green-400">
+                                    Supplier Details
+                                    @if(request('sort') === 'name')
+                                        @if(request('direction') === 'asc')
+                                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+                                            </svg>
+                                        @else
+                                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                            </svg>
+                                        @endif
+                                    @endif
+                                </a>
+                            </th>
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Contact Info</th>
-                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
-                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Items Count</th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                <a href="{{ route('suppliers.index', array_merge(request()->query(), ['sort' => 'status', 'direction' => request('sort') === 'status' && request('direction') === 'asc' ? 'desc' : 'asc'])) }}" class="flex items-center hover:text-green-600 dark:hover:text-green-400">
+                                    Status
+                                    @if(request('sort') === 'status')
+                                        @if(request('direction') === 'asc')
+                                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+                                            </svg>
+                                        @else
+                                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                            </svg>
+                                        @endif
+                                    @endif
+                                </a>
+                            </th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                <a href="{{ route('suppliers.index', array_merge(request()->query(), ['sort' => 'inventory_items_count', 'direction' => request('sort') === 'inventory_items_count' && request('direction') === 'asc' ? 'desc' : 'asc'])) }}" class="flex items-center hover:text-green-600 dark:hover:text-green-400">
+                                    Items Count
+                                    @if(request('sort') === 'inventory_items_count')
+                                        @if(request('direction') === 'asc')
+                                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+                                            </svg>
+                                        @else
+                                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                            </svg>
+                                        @endif
+                                    @endif
+                                </a>
+                            </th>
                             <th class="px-6 py-4 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
@@ -329,6 +383,23 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+// Debounced search functionality
+let searchTimeout;
+const searchInput = document.getElementById('search');
+
+if (searchInput) {
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            this.form.submit();
+        }, 500);
+    });
+}
+</script>
+@endpush
 
 @section('scripts')
 <script>

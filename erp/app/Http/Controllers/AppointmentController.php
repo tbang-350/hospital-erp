@@ -27,9 +27,28 @@ class AppointmentController extends Controller
         return redirect()->route('patients.show', $appointment->patient_id)->with('success', 'Appointment scheduled');
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $appointments = Appointment::with(['patient','employee'])->latest()->paginate(10);
+        $sortField = $request->get('sort', 'scheduled_at');
+        $sortDirection = $request->get('direction', 'desc');
+        $perPage = $request->get('per_page', 15);
+
+        $appointments = Appointment::with(['patient', 'employee'])
+            ->when(request('search'), function ($query) {
+                $query->whereHas('patient', function ($q) {
+                    $q->where('first_name', 'like', '%' . request('search') . '%')
+                      ->orWhere('last_name', 'like', '%' . request('search') . '%')
+                      ->orWhere('mrn', 'like', '%' . request('search') . '%');
+                })
+                ->orWhere('location', 'like', '%' . request('search') . '%')
+                ->orWhere('reason', 'like', '%' . request('search') . '%');
+            })
+            ->when(request('status'), function ($query) {
+                $query->where('status', request('status'));
+            })
+            ->orderBy($sortField, $sortDirection)
+            ->paginate($perPage);
+
         return view('appointments.index', compact('appointments'));
     }
 

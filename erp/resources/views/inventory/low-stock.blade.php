@@ -14,12 +14,12 @@
 
             <!-- Actions Section -->
             <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-                <button onclick="openAddItemModal()" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-all duration-200">
+                <a href="{{ route('inventory.create') }}" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-all duration-200">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                     </svg>
                     Add New Item
-                </button>
+                </a>
                 <a href="{{ route('inventory.index') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors duration-200">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
@@ -202,18 +202,4 @@
     </div>
 </div>
 
-<!-- Add Item Modal -->
-@include('inventory.partials.add-item-modal')
 @endsection
-
-@push('scripts')
-<script>
-function openAddItemModal() {
-    document.getElementById('addItemModal').classList.remove('hidden');
-}
-
-function closeAddItemModal() {
-    document.getElementById('addItemModal').classList.add('hidden');
-}
-</script>
-@endpush
