@@ -25,4 +25,14 @@ class Employee extends Model
     {
         return $this->hasMany(Appointment::class);
     }
+
+    public function payrolls()
+    {
+        return $this->hasMany(Payroll::class);
+    }
+
+    public function getFullNameAttribute()
+    {
+        return $this->first_name . ' ' . $this->last_name;
+    }
 }

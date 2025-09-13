@@ -8,6 +8,9 @@ use App\Http\Controllers\InventoryItemController;
 use App\Http\Controllers\InventoryTransactionController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\PayrollController;
+use App\Http\Controllers\AssetController;
 
 Route::get('/', function () {
     return view('landing');
@@ -75,6 +78,8 @@ Route::get('/test-notifications', function () {
             'type' => $notificationData['type'],
             'priority' => $notificationData['priority'],
             'data' => json_encode($notificationData['data']),
+            'notifiable_type' => 'App\\Models\\User',
+            'notifiable_id' => auth()->id(),
             'created_at' => now(),
             'updated_at' => now()
         ]);
@@ -120,3 +125,12 @@ Route::resource('inventory-transactions', InventoryTransactionController::class)
 Route::get('inventory/{inventoryItem}/transactions', [InventoryTransactionController::class, 'getItemTransactions'])->name('inventory.transactions');
 Route::get('reports/stock-movement', [InventoryTransactionController::class, 'stockMovementReport'])->name('reports.stock-movement');
 Route::get('reports/stock-movement/export', [InventoryTransactionController::class, 'exportStockMovement'])->name('reports.stock-movement.export');
+
+// HR & Payroll Management Routes
+Route::resource('employees', EmployeeController::class);
+Route::resource('payrolls', PayrollController::class);
+Route::patch('payrolls/{payroll}/mark-paid', [PayrollController::class, 'markAsPaid'])->name('payrolls.mark-paid');
+Route::post('payrolls/bulk-generate', [PayrollController::class, 'generateBulkPayroll'])->name('payrolls.bulk-generate');
+
+// Asset Management Routes
+Route::resource('assets', AssetController::class);

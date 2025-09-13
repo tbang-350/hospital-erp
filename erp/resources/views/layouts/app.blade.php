@@ -135,6 +135,24 @@
                     </svg>
                     Suppliers
                 </a>
+                <a href="{{ route('employees.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-primary-50 hover:text-primary-700 dark:hover:bg-gray-700 transition-colors {{ request()->routeIs('employees.*') ? 'bg-primary-50 text-primary-700 dark:bg-gray-700 font-medium' : '' }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+                    </svg>
+                    Employees
+                </a>
+                <a href="{{ route('payrolls.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-primary-50 hover:text-primary-700 dark:hover:bg-gray-700 transition-colors {{ request()->routeIs('payrolls.*') ? 'bg-primary-50 text-primary-700 dark:bg-gray-700 font-medium' : '' }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12s-1.536-.219-2.121-.659c-1.172-.879-1.172-2.303 0-3.182C10.464 7.68 11.232 7.5 12 7.5s1.536.219 2.121.659" />
+                    </svg>
+                    Payroll
+                </a>
+                <a href="{{ route('assets.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-primary-50 hover:text-primary-700 dark:hover:bg-gray-700 transition-colors {{ request()->routeIs('assets.*') ? 'bg-primary-50 text-primary-700 dark:bg-gray-700 font-medium' : '' }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75a4.5 4.5 0 01-4.884 4.484c-1.076-.091-2.264.071-2.95.904l-7.152 8.684a2.548 2.548 0 11-3.586-3.586l8.684-7.152c.833-.686.995-1.874.904-2.95a4.5 4.5 0 016.336-4.486l-3.276 3.276a3.004 3.004 0 002.25 2.25l3.276-3.276c.256.565.365 1.19.298 1.836z" />
+                    </svg>
+                    Assets
+                </a>
             </nav>
         </aside>
         <div class="flex-1 min-w-0 md:ml-0 ml-0">

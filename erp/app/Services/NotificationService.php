@@ -7,6 +7,7 @@ use App\Models\Patient;
 use App\Models\Appointment;
 use App\Models\InventoryItem;
 use App\Models\Invoice;
+use App\Models\Employee;
 use Carbon\Carbon;
 
 class NotificationService
@@ -273,6 +274,30 @@ class NotificationService
                 self::createLowStockNotification($item);
             }
         }
+    }
+
+    /**
+     * Create notification for new employee
+     */
+    public static function createEmployeeAddedNotification(Employee $employee)
+    {
+        return Notification::create([
+            'type' => 'employee_added',
+            'title' => 'New Employee Added',
+            'message' => "New employee {$employee->first_name} {$employee->last_name} has been added to {$employee->department} department.",
+            'notifiable_type' => 'App\\Models\\User',
+            'notifiable_id' => 1, // For now, will be dynamic when auth is implemented
+            'related_type' => 'App\\Models\\Employee',
+            'related_id' => $employee->id,
+            'priority' => Notification::PRIORITY_MEDIUM,
+            'action_url' => route('employees.show', $employee->id),
+            'data' => [
+                'employee_name' => $employee->first_name . ' ' . $employee->last_name,
+                'department' => $employee->department,
+                'position' => $employee->position,
+                'created_at' => $employee->created_at->toISOString()
+            ]
+        ]);
     }
 
     /**
