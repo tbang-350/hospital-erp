@@ -11,7 +11,6 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\AssetController;
-use App\Http\Controllers\UserController;
 
 Route::get('/', function () {
     return view('landing');
@@ -135,10 +134,3 @@ Route::post('payrolls/bulk-generate', [PayrollController::class, 'generateBulkPa
 
 // Asset Management Routes
 Route::resource('assets', AssetController::class);
-
-// User Management Routes
-Route::resource('users', UserController::class);
-
-Auth::routes();
-
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
